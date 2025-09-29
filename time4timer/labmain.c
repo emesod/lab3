@@ -17,13 +17,36 @@ extern int nextprime( int );
 int mytime = 0x0000;
 char textstring[] = "text, more text, and even more text!";
 
+int timeoutcount = 0;
+
 /* Below is the function that will be called when an interrupt is triggered. */
 void handle_interrupt(unsigned cause) 
 {}
 
 /* Add your code here for initializing interrupts. */
 void labinit(void)
-{}
+{
+  int timer_base = 0x04000020;
+  int cycles = 3000000;  //30 Mhz * 0.1
+  
+  volatile unsigned short* period_l = (volatile unsigned short*)(timer_base + 0x08);
+  volatile unsigned short* period_h = (volatile unsigned short*)(timer_base + 0x0C);
+  *period_l = cycles & 0xFFFF;
+  *period_h = (cycles >> 16) & 0xFFFF;
+
+  volatile int* control = (volatile int*) (timer_base + 0x4);
+  volatile int* status = (volatile int*) timer_base;
+
+  *status = 0;   // clear any pending TO
+  *control = 6;  // CONT=1, START=1
+  
+  
+
+
+
+
+
+}
 
 void set_leds(int led_mask){
   volatile int* ledress = (volatile int*) 0x04000000;
@@ -97,10 +120,10 @@ void set_time(int seconds_passed){
 }
 
 
-void switch_to_display(int *seconds_passed) {
-  int status = get_sw();
-  int selector = (status >> 8) & 0b011;
-  int value = status & 0b111111;
+void switch_to_display(int *seconds_passed, int switches) {
+  
+  int selector = (switches >> 8) & 0b011;
+  int value = switches & 0b111111;
 
   int seconds = *seconds_passed % 60;
   int minutes = (*seconds_passed / 60) % 60;
@@ -135,22 +158,31 @@ int main() {
   labinit();
   int seconds = 0;
 
+  volatile unsigned int* status = (volatile unsigned int*) 0x04000020;
   // Enter a forever loop
   while (1) {
+    int switches = get_sw();
+
+    if (*status & 0x1) {
+    *status = 1;
+    timeoutcount++;
+    if (timeoutcount == 10){
 
     
-    time2string( textstring, mytime ); // Converts mytime to string
-    display_string( textstring ); //Print out the string 'textstring'
-    delay( 125000 );          // Delays 1 sec (adjust this value)
-    tick( &mytime );     // Ticks the clock once
-    if (get_btn()) {
-      switch_to_display(&seconds);
+      time2string( textstring, mytime ); // Converts mytime to string
+      display_string( textstring ); //Print out the string 'textstring'
+      //delay( 125000 );          // Delays 1 sec (adjust this value)
+      tick( &mytime );     // Ticks the clock once
+      if (get_btn()) {
+        switch_to_display(&seconds, switches);
+      }
+      
+      set_time(seconds);
+      
+      seconds++;
+      timeoutcount = 0;
     }
-    
-    set_time(seconds);
-    
-    seconds++;
-    
+  }
   }
 }
 
