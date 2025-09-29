@@ -18,14 +18,15 @@ int mytime = 0x0000;
 char textstring[] = "text, more text, and even more text!";
 
 int timeoutcount = 0;
+int prime = 1234567;
 
 /* Below is the function that will be called when an interrupt is triggered. */
-void handle_interrupt(unsigned cause) 
-{}
+void handle_interrupt(unsigned cause) {
+
+}
 
 /* Add your code here for initializing interrupts. */
-void labinit(void)
-{
+void labinit(void){
   int timer_base = 0x04000020;
   int cycles = 3000000;  //30 Mhz * 0.1
   
@@ -153,37 +154,17 @@ void switch_to_display(int *seconds_passed, int switches) {
 
 
 /* Your code goes into main as well as any needed functions. */
-int main() {
-  // Call labinit()
-  labinit();
-  int seconds = 0;
 
-  volatile unsigned int* status = (volatile unsigned int*) 0x04000020;
-  // Enter a forever loop
-  while (1) {
-    int switches = get_sw();
-
-    if (*status & 0x1) {
-    *status = 1;
-    timeoutcount++;
-    if (timeoutcount == 10){
-
-    
-      time2string( textstring, mytime ); // Converts mytime to string
-      display_string( textstring ); //Print out the string 'textstring'
-      //delay( 125000 );          // Delays 1 sec (adjust this value)
-      tick( &mytime );     // Ticks the clock once
-      if (get_btn()) {
-        switch_to_display(&seconds, switches);
-      }
-      
-      set_time(seconds);
-      
-      seconds++;
-      timeoutcount = 0;
+int main ( void ) {
+    labinit();
+    while (1) {
+    print (”Prime: ”);
+    prime = nextprime( prime );
+    print_dec( prime );
+    print(”\n”);
     }
-  }
-  }
 }
+  
+
 
 
