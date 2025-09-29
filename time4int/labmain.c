@@ -22,7 +22,13 @@ int prime = 1234567;
 
 /* Below is the function that will be called when an interrupt is triggered. */
 void handle_interrupt(unsigned cause) {
+/* Your code to display time on the 7-segment display */
+  volatile unsigned short* timer_status = (volatile unsigned short*) 0x04000020;
+  *timer_status = 0;
 
+  tick(&mytime);
+  
+  set_time(mytime);
 }
 
 /* Add your code here for initializing interrupts. */
@@ -40,22 +46,12 @@ void labinit(void){
 
   *status = 0; 
   *control = 6; 
-  
-  
-
-
-
-
-
 }
 
 void set_leds(int led_mask){
   volatile int* ledress = (volatile int*) 0x04000000;
   *ledress = led_mask & 0x3FF;
 }
-
-
-
 
 
 static const uint8_t digit_table[10] = {
