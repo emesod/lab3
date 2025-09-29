@@ -137,6 +137,8 @@ int main() {
 
   // Enter a forever loop
   while (1) {
+
+    
     time2string( textstring, mytime ); // Converts mytime to string
     display_string( textstring ); //Print out the string 'textstring'
     delay( 125000 );          // Delays 1 sec (adjust this value)
