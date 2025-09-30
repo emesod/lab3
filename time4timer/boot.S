@@ -5,7 +5,7 @@ welcome_msg: .asciz "================================================\n===== RIS
 .section .text
 .align 2
 .globl _start
-	
+
 _isr_handler:
 	j _isr_routine	   /* ISR service routine here */
 	j _start  	   /* This is the address that a "hard reset" will go to */
@@ -125,3 +125,4 @@ _start:
 	jal main
 	
 loop:	j loop
+

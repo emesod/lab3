@@ -17,45 +17,12 @@ extern int nextprime( int );
 int mytime = 0x0000;
 char textstring[] = "text, more text, and even more text!";
 
+int seconds = 0;
+
 int timeoutcount = 0;
 int prime = 1234567;
 
-/* Below is the function that will be called when an interrupt is triggered. */
-void handle_interrupt(unsigned cause) {
-  volatile unsigned short* timer_status = (volatile unsigned short*) 0x04000020;
-  *timer_status = 0;
-
-   timeoutcount++;
-
-    if (timeoutcount == 10) {
-        timeoutcount = 0;
-
-        tick(&mytime);
-        set_time(mytime);
-    }
-}
-
-/* Add your code here for initializing interrupts. */
-void labinit(void){
-  int timer_base = 0x04000020;
-  int cycles = 3000000;  //30 Mhz * 0.1
-  
-  volatile unsigned short* period_l = (volatile unsigned short*)(timer_base + 0x08);
-  volatile unsigned short* period_h = (volatile unsigned short*)(timer_base + 0x0C);
-  *period_l = cycles & 0xFFFF;
-  *period_h = (cycles >> 16) & 0xFFFF;
-
-  volatile int* control = (volatile int*) (timer_base + 0x4);
-  volatile int* status = (volatile int*) timer_base;
-
-  *status = 0; 
-  *control = 6; 
-}
-
-void set_leds(int led_mask){
-  volatile int* ledress = (volatile int*) 0x04000000;
-  *ledress = led_mask & 0x3FF;
-}
+extern void enable_interrupt(void);
 
 
 static const uint8_t digit_table[10] = {
@@ -91,20 +58,20 @@ int get_btn(void){
 }
 
 
-void set_time(int seconds_passed){
-  int seconds = seconds_passed % 60;
-
+void set_time(int *seconds_passed){
+  int seconds = (*seconds_passed) % 60;
+  
   int first_val = seconds % 10; //Get the seconds out
   int second_val = seconds / 10; //Get the 10 seconds out
   
-  int minutes_as_seconds = seconds_passed / 60;
+  int minutes_as_seconds = (*seconds_passed) / 60;
   int minutes = minutes_as_seconds % 60;
 
   int third_val = minutes % 10;
   int fourth_val = minutes / 10;
 
   
-  int hours_as_seconds = seconds_passed / 3600;
+  int hours_as_seconds = (*seconds_passed) / 3600;
   int hours = hours_as_seconds % 24;
 
   int fifth_val = hours % 10;
@@ -153,15 +120,57 @@ void switch_to_display(int *seconds_passed, int switches) {
 }
 
 
+/* Below is the function that will be called when an interrupt is triggered. */
+void handle_interrupt(unsigned cause) {
+  volatile unsigned short* timer_status = (volatile unsigned short*) 0x04000020;
+  *timer_status = 0;
+
+  timeoutcount++;
+ 
+  
+    if (timeoutcount >= 10) {
+        timeoutcount = 0;
+        seconds++;
+
+        
+        set_time(&seconds);
+    }
+}
+
+/* Add your code here for initializing interrupts. */
+void labinit(void){
+  int timer_base = 0x04000020;
+  int cycles = 3000000;  //30 Mhz * 0.1
+  
+  volatile unsigned short* period_l = (volatile unsigned short*)(timer_base + 0x08);
+  volatile unsigned short* period_h = (volatile unsigned short*)(timer_base + 0x0C);
+  *period_l = cycles & 0xFFFF;
+  *period_h = (cycles >> 16) & 0xFFFF;
+
+  volatile int* control = (volatile int*) (timer_base + 0x4);
+  volatile int* status = (volatile int*) timer_base;
+
+  *status = 0; 
+  *control = 7; 
+  enable_interrupt();
+}
+
+void set_leds(int led_mask){
+  volatile int* ledress = (volatile int*) 0x04000000;
+  *ledress = led_mask & 0x3FF;
+}
+
+
+
 /* Your code goes into main as well as any needed functions. */
 
 int main ( void ) {
     labinit();
     while (1) {
-    print (”Prime: ”);
+    print ("Prime: ");
     prime = nextprime( prime );
     print_dec( prime );
-    print(”\n”);
+    print("\n");
     }
 }
   

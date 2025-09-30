@@ -5,6 +5,7 @@ welcome_msg: .asciz "================================================\n===== RIS
 .section .text
 .align 2
 .globl _start
+
 	
 _isr_handler:
 	j _isr_routine	   /* ISR service routine here */
@@ -125,3 +126,24 @@ _start:
 	jal main
 	
 loop:	j loop
+.globl enable_interrupt
+enable_interrupt:
+    csrr t0, mie // Read in the bits in the mie register
+    li   t1, (1 << 11) // Place a 1 on bit 11
+    or   t0, t0, t1 // Make sure we only modify bit 11
+    csrw mie, t0 // Write back onto the register
+
+	
+
+	csrr t0, mie
+    li   t1, (1 << 16)
+    or   t0, t0, t1
+    csrw mie, t0
+
+	csrr t0, mstatus
+    li   t1, (1 << 3)
+    or   t0, t0, t1
+    csrw mstatus, t0
+
+	ret
+
