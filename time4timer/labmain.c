@@ -39,12 +39,6 @@ void labinit(void)
 
   *status = 0; 
   *control = 6; 
-  
-  
-
-
-
-
 
 }
 

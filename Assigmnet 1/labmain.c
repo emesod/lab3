@@ -131,6 +131,10 @@ int main() {
   labinit();
   int seconds = 0;
 
+    for(int i =0; i < 16; i++){
+      set_leds(i);
+      delay(125000);
+    }
   // Enter a forever loop
   while (1) {
     
